@@ -232,9 +232,16 @@ uint8_t getRandomCharacter() {
 	int8_t cur_char = -1;
 	size_t char_count = sizeof(character) / sizeof(character[0]);
 
+	int iter = 0;
+
 	do {
 
 		cur_char = character[rand() % char_count];
+		iter++;
+
+		if (iter > 32)
+			break;
+
 	} while (cur_char == prev_char && ban < 5 || banCharacter[cur_char]);
 
 	prev_char = cur_char;

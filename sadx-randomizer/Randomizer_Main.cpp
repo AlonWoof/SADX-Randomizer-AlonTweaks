@@ -85,9 +85,16 @@ void getRandomStage(RandomizedEntry* entry, uint8_t Char_id) {
 
 	RandomizerGenerator* generated;
 
+	int iter = 0;
+
 	do {
 
 		generated = &RandoStageArray[rand() % LengthOfArray(RandoStageArray)];
+
+		iter++;
+
+		if (iter > 64)
+			break;
 
 	} while (previousLevel == generated->levelAndActs >> 8 || isStageBanned(generated, Char_id)
 		|| !Vanilla && isVanillaStage(generated, Char_id) || DupliCheck && isDuplicateStage(generated)); //Order check here is really important, dupli check MUST be the last thing checked.

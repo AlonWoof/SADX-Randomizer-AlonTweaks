@@ -8,7 +8,7 @@ int AISwap = -1;
 int CharaSwap = -1;
 extern int AISwapCount;
 int CurrentAI = -1;
-int AIArray[4] = { -1, Characters_Sonic, Characters_Tails, Characters_Amy }; //Ai following you
+int AIArray[4] = {-1, Characters_Sonic, Characters_Tails, Characters_Amy }; //Ai following you
 
 
 //This is where all the AI is managed: loading and bug fixes. Using a part of Charsel code by MainMemory.
@@ -758,9 +758,24 @@ short getRandomAI(uint8_t char_id, short stage_id) {
 	if (stage_id >= LevelIDs_EggWalker || stage_id == LevelIDs_PerfectChaos || stage_id == LevelIDs_Chaos0)
 		return -1;
 
-	do {
+
+	if (char_id == Characters_Amy)
+		return Characters_Tails;
+
+	if (char_id == Characters_Tails)
+		return Characters_Amy;
+
+	int iter = 0;
+
+	do 
+	{
 		cur_AI = AIArray[rand() % ai_count];
-	} while (cur_AI == prev_AI || cur_AI == char_id || (char_id != Characters_Sonic && cur_AI == Characters_Tails));
+		iter++;
+
+		if (iter > 32)
+			break;
+	} 
+	while (cur_AI == prev_AI || cur_AI == char_id || (char_id != Characters_Sonic && cur_AI == Characters_Tails));
 
 	prev_AI = cur_AI;
 	return cur_AI;
