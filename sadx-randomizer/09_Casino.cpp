@@ -114,10 +114,11 @@ void FixCasinoSoundEffects() {
 
 void Fix_PlayerPositionInPinball(Uint8 charIndex, float x, float y, float z) {
 
-	if (CurrentCharacter >= Characters_Gamma) {
+	if (CurrentCharacter >= Characters_Gamma) 
+	{
 		x = 0;
-		y = 192.295;
-		z = 51.5;
+		y = 192.295f;
+		z = 51.5f;
 	}
 
 	return PositionPlayer(charIndex, x, y, z);

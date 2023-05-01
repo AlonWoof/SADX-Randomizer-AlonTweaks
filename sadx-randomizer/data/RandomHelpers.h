@@ -1,6 +1,7 @@
 #pragma once
 
-extern struct RandomizedEntry randomizedSets[40];
+#define TaskHook FunctionHook<void, task*>
+extern struct RandomizedEntry randomizedSets[];
 extern std::string modpath;
 
 struct RandomizedEntry
@@ -132,6 +133,7 @@ extern bool isChaoHintEnabled;
 extern bool AmySpeed;
 extern bool BigSpeed;
 extern bool isKHMod;
+extern bool isTCBanned;
 
 
 uint8_t getRandomCharacter();
@@ -292,6 +294,8 @@ void LevelOnFrames();
 
 float GetDistance(NJS_VECTOR* orig, NJS_VECTOR* dest);
 
+extern bool warped;
+
 extern int RageQuit;
 extern int JumpPB;
 extern int ringsPB;
@@ -315,9 +319,4 @@ void Result_Init();
 void Objects_Common_Init();
 void Missions_Init();
 
-
-struct SEQ_SECTION
-{
-	void(__cdecl* init)();
-	void(__cdecl* main)(int);
-};
+void warpedOnFrames();

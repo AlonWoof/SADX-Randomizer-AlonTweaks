@@ -16,17 +16,18 @@ int8_t CurrentStageVersion = 0;
 int character[6] = { Characters_Sonic, Characters_Tails, Characters_Knuckles, Characters_Amy, Characters_Gamma, Characters_Big };
 
 //Banned level list, there is few stage impossible to beat, depending on the character.
-int bannedLevelsGamma[6] = { LevelIDs_HedgehogHammer, LevelIDs_Chaos4, LevelIDs_Chaos6, LevelIDs_EggWalker, LevelIDs_PerfectChaos, LevelIDs_Zero };
-int bannedLevelsBig[2] = { LevelIDs_EggViper, LevelIDs_E101R };
+int bannedLevelsGamma[] = { LevelIDs_HedgehogHammer, LevelIDs_Chaos2, LevelIDs_Chaos4, LevelIDs_Chaos6, LevelIDs_EggWalker, LevelIDs_PerfectChaos, LevelIDs_Zero };
+int bannedLevelsBig[] = { LevelIDs_EggViper, LevelIDs_E101R };
 
 //Initiliaze banned Vanilla stage (if option is enabled)
-int bannedRegularSonicAndTails[3] = { LevelIDs_Chaos4, LevelIDs_EggHornet, LevelIDs_SandHill };
-int bannedRegularGamma[2] = { LevelIDs_E101, LevelIDs_E101R };
+int bannedRegularSonicAndTails[] = { LevelIDs_Chaos4, LevelIDs_EggHornet, LevelIDs_SandHill };
+int bannedRegularGamma[] = { LevelIDs_E101, LevelIDs_E101R };
 
 int previousLevel = -1;
-int TCCount = 0;
+uint8_t TCCount = 0;
 
-RandomizerGenerator RandoStageArray[52]{
+RandomizerGenerator RandoStageArray[52]
+{
 	{LevelAndActIDs_HedgehogHammer, AmyVersion, Characters_Amy, },
 	{LevelAndActIDs_EmeraldCoast1, SonicVersion, Characters_Sonic },
 	{LevelAndActIDs_EmeraldCoast1, GammaVersion, Characters_Gamma },
@@ -63,8 +64,8 @@ RandomizerGenerator RandoStageArray[52]{
 	{LevelAndActIDs_Chaos0, BossVersion, Characters_Sonic },
 	{LevelAndActIDs_Chaos2, BossVersion, Characters_Knuckles },
 	{LevelAndActIDs_Chaos4, BossVersion, Characters_Knuckles},
-	{LevelAndActIDs_Chaos6, BossVersion, Characters_Sonic },
-	{LevelAndActIDs_Chaos6Two, BossVersion, Characters_Knuckles },
+	{LevelAndActIDs_Chaos6Sonic, BossVersion, Characters_Sonic },
+	{LevelAndActIDs_Chaos6Knuckles, BossVersion, Characters_Knuckles },
 	{LevelAndActIDs_PerfectChaos, BossVersion, Characters_Sonic },
 	{LevelAndActIDs_EggHornet, BossVersion, Characters_Tails },
 	{LevelAndActIDs_EggWalker, BossVersion, Characters_Tails},
@@ -81,8 +82,9 @@ RandomizerGenerator RandoStageArray[52]{
 	{LevelAndActIDs_SandHill, TailsVersion, Characters_Tails},
 };
 
-void getRandomStage(RandomizedEntry* entry, uint8_t Char_id) {
-
+uint16_t failSafeLvlCount = 0;
+void getRandomStage(RandomizedEntry* entry, uint8_t Char_id) 
+{
 	RandomizerGenerator* generated;
 
 	int iter = 0;
@@ -90,6 +92,17 @@ void getRandomStage(RandomizedEntry* entry, uint8_t Char_id) {
 	do {
 
 		generated = &RandoStageArray[rand() % LengthOfArray(RandoStageArray)];
+		failSafeLvlCount++;
+
+		if (failSafeLvlCount >= 300)
+		{
+			if (isStageBanned(generated, Char_id) || !Vanilla && isVanillaStage(generated, Char_id))
+			{
+				generated = &RandoStageArray[rand() % LengthOfArray(RandoStageArray)];
+			}
+
+			break;
+		}
 
 		iter++;
 
@@ -103,7 +116,7 @@ void getRandomStage(RandomizedEntry* entry, uint8_t Char_id) {
 	entry->act = generated->levelAndActs & 0xf;
 	entry->Layout = generated->version;
 	previousLevel = entry->level;
-	return;
+	failSafeLvlCount = 0;
 }
 
 
@@ -115,9 +128,13 @@ bool isStageBanned(RandomizerGenerator* generated, uint8_t char_id)
 	uint8_t curBannedChar = generated->bannedChar;
 	short curChar = char_id;
 
-	if (curSingleLevel == LevelIDs_TwinkleCircuit && TCCount >= 2)
-		return true;
-
+	if (curSingleLevel == LevelIDs_TwinkleCircuit)
+	{
+		if (TCCount >= 2 || isTCBanned == true)
+			return true;
+		else
+			TCCount++;
+	} 		
 
 	for (uint8_t i = 0; i < LengthOfArray(bannedLevelsGamma); i++)
 	{
@@ -166,7 +183,7 @@ bool isDuplicateStage(RandomizerGenerator* generated) {
 
 
 	short curLevelAndActID = generated->levelAndActs;
-	short curVersion = generated->version;
+	int8_t curVersion = generated->version;
 	short curLevel = ConvertLevelActsIDtoLevel(curLevelAndActID);
 
 	if (ban >= 5)
@@ -191,11 +208,6 @@ bool isDuplicateStage(RandomizerGenerator* generated) {
 		}
 	}
 
-	if (TCCount >= 2 && curLevel == LevelIDs_TwinkleCircuit)
-		return true;
-	else if (curLevel == LevelIDs_TwinkleCircuit)
-		TCCount++;
-
 	if (oldStageVersion == curVersion && (oldStageVersion == TailsVersion || oldStageVersion == KnucklesVersion) && DuplicateStages.size() < 40) {
 		return true;
 	}
@@ -208,7 +220,7 @@ bool isDuplicateStage(RandomizerGenerator* generated) {
 }
 
 
-int levelCount;
+int levelCount = 0;
 
 void SetInfoNextRandomStage(char Stage, char Act) {
 
@@ -496,6 +508,7 @@ void RandomizeStages_Init() {
 	if (!RNGStages)
 		return;
 
+
 	//Hack many functions which teleport the player to the next stage to make them random.
 	WriteCall((void*)0x41709d, GoToNextLevel_hook);
 	WriteCall((void*)0x417b47, GoToNextLevel_hook);
@@ -513,5 +526,5 @@ void RandomizeStages_Init() {
 	//WriteCall((void*)0x416be2, CancelResetPosition); //hook "SetStartPos_ReturnToField" used to cancel the reset character position to 0 after quitting a stage.
 	WriteCall((void*)0x417bed, GameOver_R);
 	WriteCall((void*)0x41717d, GameOver_R);
-	return;
+
 }

@@ -361,27 +361,39 @@ void DynCol_Delete(ObjectMaster* obj) {
 
 void TeleportPlayerResultScreen(NJS_VECTOR pos, int yRot) {
 
-	if (CurrentMission == Mission3_LostChao) {
-		if (CurrentLevel == LevelIDs_HotShelter && CurrentStageVersion == AmyVersion && isDCMod() && CurrentAct == 1) {
+	if (CurrentMission == Mission3_LostChao) 
+	{
+		if (CurrentLevel == LevelIDs_HotShelter && CurrentStageVersion == AmyVersion && isDCMod() && CurrentAct == 1) 
+		{
 			pos = { 734.767, 428.211, -2954.12 };
 			yRot = 0xC0;
 		}
 	}
 
-	for (int j = 0; j < 8; j++) {
-		if (EntityData1Ptrs[j]) {
-			EntityData1Ptrs[j]->Position = pos;
-			EntityData1Ptrs[j]->Rotation.y = yRot;
+
+	for (uint8_t j = 0; j < 8; j++) 
+	{
+		if (playertwp[j]) 
+		{
+			if (CurrentMission != Mission3_LostChao)
+			{
+				CharColliOff(playertwp[j]);
+				warped = true;
+			}
+		
+			playertwp[j]->pos = pos;
+			playertwp[j]->ang.y = yRot;
 
 			if (j > 0) {
-				EntityData1Ptrs[j]->Position.x += 5;
-				EntityData1Ptrs[j]->Position.z += 5;
+				playertwp[j]->pos.x += 5;
+				playertwp[j]->pos.z += 5;
 			}
 		}
 	}
 }
 
-struct colLevelStruct {
+struct colLevelStruct 
+{
 	int currentLevel;
 	int currentAct;
 };
@@ -394,7 +406,8 @@ colLevelStruct levelCol[]{
 };
 
 void AddColOnLand() {
-	for (int i = 0; i < CurrentLandTable->COLCount; i++) {
+	for (int i = 0; i < CurrentLandTable->COLCount; i++) 
+	{
 		if (CurrentLandTable->Col[i].Flags & ColFlags_Visible) {
 			CurrentLandTable->Col[i].Flags |= (int)(ColFlags_Solid);
 		}
@@ -403,7 +416,8 @@ void AddColOnLand() {
 
 void CheckAndAddColLandTable() {
 
-	for (int j = 0; j < LengthOfArray(levelCol); j++) {
+	for (int j = 0; j < LengthOfArray(levelCol); j++)
+	{
 		if (CurrentLevel == levelCol[j].currentLevel && CurrentAct == levelCol[j].currentAct) {
 			AddColOnLand();
 			break;
@@ -418,8 +432,9 @@ void Remove_TargetCursor(ObjectMaster* obj) {
 	EntityData1* data = obj->Data1;
 
 	if (data) {
-		if (data->Status & Status_Hurt) {
-			E102KillCursor((ObjectMaster*)obj);
+		if (data->Status & Status_Hurt) 
+		{
+			E102KillCursor((task*)obj);
 		}
 	}
 }
@@ -448,6 +463,7 @@ void Check_AllocateObjectData2(ObjectMaster* obj, EntityData1* data1)
 		}
 	}
 }
+
 int checkIfFileExists(const char* filename)
 {
 	FILE* file;

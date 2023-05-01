@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-
+FunctionHook<void> LoadCharacter_t((intptr_t)0x4157C0);
 //Manage characters stuff, improve and fixes some stuff
 char SonicRand = 0;
 extern bool Upgrade;
@@ -31,7 +31,9 @@ void CheckAndSetUpgrades() {
 void CheckAndLoadRaceOpponent();
 
 //Hook Load Character
-void LoadCharacter_r() {
+void LoadCharacter_r() 
+{
+	LoadCharacter_t.Original();
 
 	CheckAndLoadRaceOpponent();
 
@@ -44,10 +46,6 @@ void LoadCharacter_r() {
 		CheckLoadBird();
 
 	CheckAndSetUpgrades();
-
-	LoadCharacter();
-
-	return;
 }
 
 
@@ -92,8 +90,8 @@ void fixCharacterSoundAfterReset() {
 
 //Call different stuff when a stage start, like Super Sonic Random transformation, or a custom cart. Also used to call some fixes.
 
-void CallStuffWhenLevelStart() {
-
+void CallStuffWhenLevelStart() 
+{
 
 	TimeThing = 1; //activate the timer of the stage.
 
@@ -108,7 +106,8 @@ void CallStuffWhenLevelStart() {
 		MetalSonicFlag = 0; //Fix Metal Sonic life icon with wrong characters.
 		SonicRand = 0;
 	}
-	else {
+	else 
+	{
 		SuperSonic_TransformationCheck();
 	}
 
@@ -213,7 +212,7 @@ void FixVictoryTailsVoice() {
 
 void RosterBanCheck() {
 	//ban roster check
-	for (int i = 0; i < LengthOfArray(banCharacter); i++)
+	for (uint8_t i = 0; i < LengthOfArray(banCharacter); i++)
 	{
 		if (banCharacter[i] == 1)
 			ban++;
@@ -248,8 +247,11 @@ uint8_t getRandomCharacter() {
 	return cur_char;
 }
 
-void Characters_Init() {
-	WriteCall((void*)0x415a25, LoadCharacter_r); //Hook Load Character
+void Characters_Init() 
+{
+	LoadCharacter_t.Hook(LoadCharacter_r);
+
+	WriteData<1>((int*)0x47ED60, 0xC3); //remove load Tails AI, we will manually do it
 	WriteJump((void*)0x47A907, (void*)0x47A936); // prevent Knuckles from automatically loading Emerald radar
 	WriteData<5>((void*)0x48adaf, 0x90); // prevent Amy to load Zero.
 
